@@ -1,0 +1,11 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install and configure Docker
+      include_tasks: tasks/docker.yml
+      tags: docker
+
+    - name: Install and configure GitLab Runner
+      include_tasks: tasks/gitlab-runner.yml
+      tags: gitlab-runner

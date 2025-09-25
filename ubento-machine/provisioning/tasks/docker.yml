@@ -1,0 +1,32 @@
+---
+- name: Install dependencies
+  apt:
+    name: ['apt-transport-https', 'ca-certificates', 'curl', 'gnupg']
+    state: present
+    update_cache: yes
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /tmp/docker.gpg
+    mode: '0644'
+  become: true
+
+- name: Dearmor and install Docker GPG key
+  ansible.builtin.shell: gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg /tmp/docker.gpg
+  args:
+    creates: /usr/share/keyrings/docker-archive-keyring.gpg
+    removes: /tmp/docker.gpg
+  become: true
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+
+- name: Install Docker
+  apt:
+    name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
+    state: present
+    update_cache: yes
