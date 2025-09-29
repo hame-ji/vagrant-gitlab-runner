@@ -5,11 +5,13 @@
       ansible.builtin.get_url:
         url: https://packages.gitlab.com/gpg.key
         dest: /tmp/gitlab-runner.gpg
-        mode: '0644'
+        mode: "0644"
+        force: false
       become: true
 
     - name: Dearmor and install GitLab Runner GPG key
-      ansible.builtin.shell: gpg --dearmor -o /usr/share/keyrings/gitlab-runner.gpg /tmp/gitlab-runner.gpg
+      ansible.builtin.command: >
+        gpg --dearmor -o /usr/share/keyrings/gitlab-runner.gpg /tmp/gitlab-runner.gpg
       args:
         creates: /usr/share/keyrings/gitlab-runner.gpg
         removes: /tmp/gitlab-runner.gpg
@@ -17,16 +19,28 @@
 
     - name: Add GitLab Runner APT repository
       ansible.builtin.apt_repository:
-        repo: "deb [signed-by=/usr/share/keyrings/gitlab-runner.gpg] https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ {{ ansible_distribution_release }} main"
+        repo: >
+          deb [signed-by=/usr/share/keyrings/gitlab-runner.gpg]
+          https://packages.gitlab.com/runner/gitlab-runner/ubuntu/
+          {{ ansible_distribution_release }} main
         state: present
         filename: gitlab-runner
-        update_cache: yes
+        update_cache: true
+      become: true
 
-    - name: Install GitLab Runner
+    - name: Install GitLab Runner package
       ansible.builtin.apt:
         name: gitlab-runner
         state: present
-        update_cache: yes
+        update_cache: true
+      become: true
+
+- name: Check if GitLab Runner is already registered
+  ansible.builtin.command: gitlab-runner list
+  register: gitlab_runner_list
+  changed_when: false
+  failed_when: false
+  become: true
 
 - name: Register GitLab Docker Runner
   ansible.builtin.command: >
@@ -42,5 +56,5 @@
     --access-level="ref_protected"
   register: docker_runner_registration
   changed_when: "'Runner registered successfully' in docker_runner_registration.stdout"
-  when: gitlab_runner_registration_token is defined and gitlab_runner_registration_token is not none and gitlab_runner_registration_token | length > 0
-
+  when: "'docker-runner' not in gitlab_runner_list.stdout"
+  become: true

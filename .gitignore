@@ -1,2 +1,5 @@
 */.vagrant
 */.env
+.ansible
+.vault_key.txt
+ubento-machine/provisioning/roles
