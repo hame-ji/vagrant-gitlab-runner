@@ -13,6 +13,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
 
+    env:
+      ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/.vault_pass
+
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +25,7 @@ jobs:
 
       - name: Install tools
         run: |
-          pip install ansible-lint
+          pip install ansible ansible-lint
           wget -qO vagrant.deb https://releases.hashicorp.com/vagrant/2.4.9/vagrant_2.4.9-1_amd64.deb
           sudo dpkg -i vagrant.deb
 
@@ -41,4 +44,6 @@ jobs:
           ansible-lint --force-color --strict
         env:
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
-          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/.vault_pass
+
+      - name: Syntax check Ansible
+        run: ansible-playbook -i 'localhost,' provisioning/playbook.yml --syntax-check
