@@ -13,9 +13,6 @@ jobs:
   lint:
     runs-on: ubuntu-latest
 
-    env:
-      ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/.vault_pass
-
     steps:
       - uses: actions/checkout@v4
 
@@ -25,25 +22,40 @@ jobs:
 
       - name: Install tools
         run: |
-          pip install ansible ansible-lint
+          pip install ansible-core ansible-lint
           wget -qO vagrant.deb https://releases.hashicorp.com/vagrant/2.4.9/vagrant_2.4.9-1_amd64.deb
           sudo dpkg -i vagrant.deb
 
-      - name: Validate Vagrantfiles
-        run: |
-          shopt -s globstar
-          for f in **/Vagrantfile; do
-            [[ -f "$f" ]] || continue
-            (cd "$(dirname "$f")" && vagrant validate --ignore-provider)
-          done
-
-      - name: Lint Ansible
-        run: |
-          echo "$ANSIBLE_VAULT_PASSWORD" > $PWD/.vault_pass
-          find . -name requirements.yml -type f -exec ansible-galaxy install -r {} \; 2>/dev/null || true
-          ansible-lint --force-color --strict
+      - name: Setup Ansible vault
+        run: echo "$ANSIBLE_VAULT_PASSWORD" > .vault_pass
         env:
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
 
-      - name: Syntax check Ansible
-        run: ansible-playbook -i 'localhost,' provisioning/playbook.yml --syntax-check
+      - name: Install Ansible roles
+        run: |
+          find . -name requirements.yml -type f | while read -r req; do
+            ansible-galaxy install -r "$req"
+          done
+
+      - name: Validate Vagrantfiles
+        run: |
+          shopt -s globstar nullglob
+          for f in **/Vagrantfile; do
+            echo "✓ Validating $f"
+            (cd "$(dirname "$f")" && vagrant validate --ignore-provider)
+          done
+
+      - name: Syntax check playbooks
+        run: |
+          shopt -s globstar nullglob
+          for playbook in **/*playbook*.yml **/site.yml; do
+            echo "✓ Syntax checking $playbook"
+            ansible-playbook "$playbook" --syntax-check
+          done
+        env:
+          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/.vault_pass
+
+      - name: Lint Ansible
+        run: ansible-lint --force-color --strict
+        env:
+          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/.vault_pass
