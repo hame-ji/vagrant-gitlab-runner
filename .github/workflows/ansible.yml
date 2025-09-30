@@ -31,7 +31,6 @@ jobs:
           shopt -s globstar
           for f in **/Vagrantfile; do
             [[ -f "$f" ]] || continue
-            echo "✓ Validating $f"
             (cd "$(dirname "$f")" && vagrant validate --ignore-provider)
           done
 
