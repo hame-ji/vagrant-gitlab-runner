@@ -12,38 +12,34 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      
+
       - name: Install tools
         run: |
           pip install ansible-lint
           wget -qO vagrant.deb https://releases.hashicorp.com/vagrant/2.4.9/vagrant_2.4.9-1_amd64.deb
           sudo dpkg -i vagrant.deb
-      
+
       - name: Validate Vagrantfiles
         run: |
           shopt -s globstar
           for f in **/Vagrantfile; do
             [[ -f "$f" ]] || continue
-            echo "🔍 Validating $f"
+            echo "✓ Validating $f"
             (cd "$(dirname "$f")" && vagrant validate --ignore-provider)
           done
-      
-      # - name: Lint Ansible
-      #   run: |
-      #     cat > .ansible-lint <<EOF
-      #     skip_list:
-      #       - var-naming[no-role-prefix]
-      #     warn_list:
-      #       - experimental
-      #     exclude_paths:
-      #       - '*/secrets.yml'
-      #       - '*/vault.yml'
-      #     EOF
-      #     ansible-lint --force-color --strict
+
+      - name: Lint Ansible
+        run: |
+          echo "$ANSIBLE_VAULT_PASSWORD" > $PWD/.vault_pass
+          find . -name requirements.yml -type f -exec ansible-galaxy install -r {} \; 2>/dev/null || true
+          ansible-lint --force-color --strict
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+          ANSIBLE_VAULT_PASSWORD_FILE: ${{ github.workspace }}/.vault_pass
