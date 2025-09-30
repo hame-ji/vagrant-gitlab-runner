@@ -1,8 +1,9 @@
 ---
-- hosts: all
+- name: Setup GitLab Runner
+  hosts: all
   become: true
   vars_files:
-  - ./secrets.yml
+    - ./secrets.yml
 
   roles:
     - role: geerlingguy.docker
@@ -10,5 +11,5 @@
 
   tasks:
     - name: Install and configure GitLab Runner
-      include_tasks: tasks/gitlab-runner.yml
+      ansible.builtin.include_tasks: tasks/gitlab-runner.yml
       tags: gitlab-runner
