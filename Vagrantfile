@@ -6,8 +6,7 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2
   end
 
-  config.vm.provision "ansible" do |ansible|
-    ansible.version = "12.0.0"
+  config.vm.provision "ansible_local" do |ansible|
     ansible.playbook = "provisioning/playbook.yml"
     ansible.vault_password_file = "./provisioning/.vault_key.txt"
     ansible.extra_vars = {
