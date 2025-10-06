@@ -6,6 +6,11 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2
   end
 
+  config.vm.provision "shell", privileged: false, inline: <<-SHELL
+    echo "[INFO] Installing Ansible roles..."
+    ansible-galaxy install -r provisioning/requirements.yml -p provisioning/roles --force
+  SHELL
+
   config.vm.provision "ansible" do |ansible|
     ansible.version = "12.0.0"
     ansible.playbook = "provisioning/playbook.yml"
