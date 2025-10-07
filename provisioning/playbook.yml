@@ -8,8 +8,15 @@
   roles:
     - role: geerlingguy.docker
       tags: docker
-
-  tasks:
-    - name: Install and configure GitLab Runner
-      ansible.builtin.include_tasks: tasks/gitlab-runner.yml
+    - role: riemers.gitlab-runner
       tags: gitlab-runner
+      vars:
+        gitlab_runner_registration_token_type: "registration-token"
+        gitlab_runner_coordinator_url: "https://gitlab.com/"
+        gitlab_runner_runners:
+          - name: "docker-runner"
+            executor: "docker"
+            docker_image: "alpine:latest"
+            run_untagged: false
+            locked: true
+            access_level: "ref_protected"
