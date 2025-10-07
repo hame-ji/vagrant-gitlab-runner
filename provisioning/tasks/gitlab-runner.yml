@@ -42,6 +42,10 @@
   failed_when: false
   become: true
 
+- name: Set runner existence fact
+  ansible.builtin.set_fact:
+    runner_exists: "{{ 'docker-runner' in gitlab_runner_list.stdout }}"
+
 - name: Register GitLab Docker Runner
   ansible.builtin.command: >
     gitlab-runner register
@@ -56,5 +60,5 @@
     --access-level="ref_protected"
   register: docker_runner_registration
   changed_when: "'Runner registered successfully' in docker_runner_registration.stdout"
-  when: "'docker-runner' not in gitlab_runner_list.stdout"
+  when: not runner_exists
   become: true
