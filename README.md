@@ -7,14 +7,20 @@ This project provisions a Ubuntu 22.04 VM using Vagrant and Ansible, installing 
 - Vagrant 2.x
 - Ansible 2.12+
 - VirtualBox
-- `GITLAB_TOKEN` environment variable for runner registration
+- GitLab runner registration token
 
 ## Quick Start
 1. Clone the repository.
-2. Set `export GITLAB_TOKEN=your_token`.
+2. Copy `.env.example` to `.env` and set your GitLab token.
 3. Run `vagrant up` to provision the VM.
 4. Access the VM with `vagrant ssh`.
 5. Verify runner registration in your GitLab project.
+
+### Environment Setup
+```bash
+cp .env.example .env
+# Edit .env with your actual GITLAB_TOKEN
+```
 
 ## Usage ⚙️
 - Reload changes: `vagrant reload --provision`
