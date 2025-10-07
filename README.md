@@ -1,38 +1,60 @@
-# Vagrant GitLab Runner Setup 🚀
+# Vagrant GitLab Runner 🚀
 
-## Overview
-This project provisions a Ubuntu 22.04 VM using Vagrant and Ansible, installing Docker and a GitLab Runner configured for Docker executors. Ideal for local CI/CD testing.
-
-## Prerequisites 📋
-- Vagrant 2.x
-- Ansible 2.12+
-- VirtualBox
-- GitLab runner registration token
+Automated Ubuntu 22.04 VM setup with Docker and GitLab Runner for local CI/CD testing.
 
 ## Quick Start
-1. Clone the repository.
-2. Copy `.env.example` to `.env` and set your GitLab token.
-3. Run `vagrant up` to provision the VM.
-4. Access the VM with `vagrant ssh`.
-5. Verify runner registration in your GitLab project.
 
-### Environment Setup
 ```bash
+# Clone and configure
+git clone <repo-url>
+cd vagrant-gitlab-runner
 cp .env.example .env
-# Edit .env with your actual GITLAB_TOKEN
+# Edit .env with your GitLab registration token
+
+# Provision VM
+vagrant up
 ```
 
-## Usage ⚙️
-- Reload changes: `vagrant reload --provision`
-- Destroy VM: `vagrant destroy`
-- Manual provisioning: `ansible-playbook provisioning/playbook.yml --extra-vars "gitlab_runner_registration_token=$GITLAB_TOKEN"`
+## Secrets
+
+```bash
+printf 'your-vault-password' > .vault_key.txt
+ansible-vault create provisioning/secrets.yml --vault-password-file .vault_key.txt
+```
+
+Populate the vault with:
+
+```yaml
+gitlab_runner_registration_token: "glrt-..."
+```
+
+Update later with `ansible-vault edit provisioning/secrets.yml --vault-password-file .vault_key.txt`.
+
+## System Components
+
+- **Base**: Ubuntu 22.04 (2GB RAM, 2 vCPU)
+- **Container Runtime**: Docker (via geerlingguy.docker 7.5.5)
+- **CI Runner**: GitLab Runner (via riemers.gitlab-runner v2.0.12)
+- **Executor**: Docker with Alpine image
 
 ## Configuration
-Edit `Vagrantfile` for VM specs or `provisioning/playbook.yml` for Ansible tasks. Secrets are handled via environment variables.
 
-## Testing and Linting 🧪
-- Lint: `ansible-lint provisioning/`
-- Dry-run: `ansible-playbook --check provisioning/playbook.yml`
+- **VM Settings**: Edit `Vagrantfile`
+- **Runner Config**: Edit `provisioning/playbook.yml`
+- **Tokens**: Stored in encrypted `provisioning/secrets.yml`
+
+## Commands
+
+```bash
+vagrant reload --provision    # Apply changes
+vagrant destroy               # Remove VM
+ansible-lint provisioning/   # Lint Ansible code
+```
+
+## CI/CD
+
+Automated testing via GitHub Actions includes Ansible linting and Vagrantfile validation.
 
 ## License
+
 MIT
