@@ -1,6 +1,5 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-22.04"
-  config.vm.box_version = "202508.03.0"
+  config.vm.box = "ubuntu/jammy64"
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "2048"
     vb.cpus = 2
